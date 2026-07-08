@@ -28,11 +28,18 @@ def is_joined(user_id):
         return False
 @bot.message_handler(commands=['start'])
 def start(message):
-    if is_joined(message.from_user.id):
+    if message.from_user.id == OWNER_ID:
+        bot.reply_to(
+            message,
+            "👑 Welcome Owner Sir!\n\n🚗 Vehicle Info Bot Ready Hai.\n\nVehicle Number bhejo."
+        )
+
+    elif is_joined(message.from_user.id):
         bot.reply_to(
             message,
             "🚗 Vehicle Info Bot\n\nVehicle Number bhejo."
         )
+
     else:
         markup = InlineKeyboardMarkup()
         markup.add(
