@@ -7,6 +7,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
+OWNER_ID = 6508791739
 
 app = Flask(__name__)
 
@@ -17,6 +18,9 @@ def home():
 CHANNEL = "@tech_updates_india0763"
 
 def is_joined(user_id):
+    if user_id == OWNER_ID:
+        return True
+
     try:
         member = bot.get_chat_member(CHANNEL, user_id)
         return member.status in ["member", "administrator", "creator"]
