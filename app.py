@@ -128,7 +128,7 @@ Valid Till: {v.get('insuranceUpto','N/A')}
 📊 <b>Status:</b> {v.get('status','N/A')}
 
 👨‍💻 <b>Developer:</b>
-{data['credits']['developer']}
+@tomar_ji_99
 """
 
         bot.reply_to(message, text, parse_mode="HTML")
