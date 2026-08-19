@@ -18,6 +18,8 @@ bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None)
 
 OWNER_ID = 6508791739
 CHANNEL = "@tech_updates_india0763"
+GROUP = "@allioneplace"
+YOUTUBE_URL = "https://www.youtube.com/@hackeronall"
 DEV_CREDIT = "@tomar_ji_99"
 
 # Protected List
@@ -35,7 +37,7 @@ def get_protected_warning():
         "⚠️ <b>[RESTRICTED ENTITY / SECURITY OVERRIDE]</b> ⚠️\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "⛔ <b>ACCESS VIOLATION:</b> Target profile is protected by elite-level cyber security architecture.\n\n"
-        "🛡️ <b>STATUS:</b> Premium / Top-Tier Ethical Hacker Node.\n"
+        "🛡️ <b>STATUS:</b> Premium / Top-Tier Node.\n"
         "🚫 Scanning or intercepting this target is strictly prohibited by central protocols.\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
@@ -47,14 +49,42 @@ def log_to_owner(log_text):
         pass
 
 def is_joined(user_id):
-    # Owner always has full access
+    # Owner ke liye verification hamesha True rahegi
     if str(user_id) == str(OWNER_ID):
         return True
     try:
-        member = bot.get_chat_member(CHANNEL, user_id)
-        return member.status in ["member", "administrator", "creator"]
+        # Check Channel
+        ch_member = bot.get_chat_member(CHANNEL, user_id)
+        if ch_member.status not in ["member", "administrator", "creator"]:
+            return False
+        
+        # Check Group
+        grp_member = bot.get_chat_member(GROUP, user_id)
+        if grp_member.status not in ["member", "administrator", "creator"]:
+            return False
+            
+        return True
     except Exception:
-        return True  # API fail hone par user block na ho
+        # Bot agar group/channel me admin nahi hai toh user block na ho
+        return True
+
+def get_join_markup():
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton("📢 Join Official Channel", url="https://t.me/tech_updates_india0763"),
+        InlineKeyboardButton("💬 Join Telegram Group", url="https://t.me/allioneplace"),
+        InlineKeyboardButton("▶️ Subscribe YouTube Channel", url=YOUTUBE_URL)
+    )
+    return markup
+
+def send_restriction_message(message):
+    bot.reply_to(
+        message,
+        "🔒 <b>ACCESS RESTRICTED</b>\n\n"
+        "Bot use karne ke liye hamare Channel, Group aur YouTube ko join/subscribe karein fir <b>/start</b> dabayein.",
+        reply_markup=get_join_markup(),
+        parse_mode="HTML"
+    )
 
 def extract_param(text):
     parts = text.strip().split(maxsplit=1)
@@ -68,19 +98,11 @@ def start_cmd(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
     
-    # Don't log owner's own /start to prevent clutter
     if user_id != OWNER_ID:
         log_to_owner(f"🛰️ <b>[ACCESS]:</b> @{html.escape(username)} (<code>{user_id}</code>)")
 
     if not is_joined(user_id):
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton("📢 Connect To Channel", url="https://t.me/tech_updates_india0763"))
-        bot.reply_to(
-            message,
-            "🔒 <b>ACCESS RESTRICTED</b>\n\nPehle hamare official channel ko join karein fir <b>/start</b> dabayein.",
-            reply_markup=markup,
-            parse_mode="HTML"
-        )
+        send_restriction_message(message)
         return
 
     welcome_text = (
@@ -89,7 +111,7 @@ def start_cmd(message):
         "🛠️ <b>COMMANDS:</b>\n\n"
         "1️⃣ <b>Phone Data Search:</b>\n"
         "👉 <code>/num 9006640786</code>\n\n"
-        "2️⃣ <b>Aadhaar Query Engine:</b>\n"
+        "2️⃣ <b>ID Query Engine:</b>\n"
         "👉 <code>/aadhar [ID_QUERY]</code>\n\n"
         "3️⃣ <b>Network & Truecaller Analytics:</b>\n"
         "👉 <code>/true 9973700987</code>\n\n"
@@ -105,7 +127,7 @@ def num_cmd(message):
     username = message.from_user.username or "N/A"
 
     if not is_joined(user_id):
-        bot.reply_to(message, "❌ Pehle channel join karein: @tech_updates_india0763")
+        send_restriction_message(message)
         return
 
     target = extract_param(message.text).replace(" ", "")
@@ -166,7 +188,7 @@ def aadhar_cmd(message):
     username = message.from_user.username or "N/A"
 
     if not is_joined(user_id):
-        bot.reply_to(message, "❌ Pehle channel join karein: @tech_updates_india0763")
+        send_restriction_message(message)
         return
 
     target = extract_param(message.text).replace(" ", "")
@@ -175,7 +197,7 @@ def aadhar_cmd(message):
         return
 
     if user_id != OWNER_ID:
-        log_to_owner(f"🔍 <b>[AADHAAR SCAN]:</b> @{html.escape(username)} | <code>[Aadhaar Redacted]</code>")
+        log_to_owner(f"🔍 <b>[ID SCAN]:</b> @{html.escape(username)} | <code>[Query Processed]</code>")
 
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
@@ -192,9 +214,9 @@ def aadhar_cmd(message):
             return
 
         report = [
-            "⚡ <b>AADHAAR REGISTRY REPORT</b> ⚡",
+            "⚡ <b>REGISTRY REPORT</b> ⚡",
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "🎯 <b>Target ID:</b> <code>[Aadhaar Redacted]</code>",
+            "🎯 <b>Target ID:</b> <code>[Identifier Processed]</code>",
             f"📊 <b>Records Mapped:</b> <b>{len(data_list)}</b>",
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         ]
@@ -226,7 +248,7 @@ def true_cmd(message):
     username = message.from_user.username or "N/A"
 
     if not is_joined(user_id):
-        bot.reply_to(message, "❌ Pehle channel join karein: @tech_updates_india0763")
+        send_restriction_message(message)
         return
 
     target = extract_param(message.text).replace(" ", "")
@@ -289,4 +311,4 @@ def run_bot():
 if __name__ == "__main__":
     threading.Thread(target=run_bot, daemon=True).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-                    
+    
