@@ -54,12 +54,20 @@ def is_joined(user_id):
     except:
         return False
 
+# Clean command parser to handle group mentions like /num@BotUsername
+def extract_param(text, command_prefix):
+    parts = text.strip().split(maxsplit=1)
+    if len(parts) > 1:
+        return parts[1].strip()
+    return ""
+
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
+    chat_type = message.chat.type
     
-    log_to_owner(f"🛰️ <b>[SYSTEM ACCESS - START COMMAND]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>")
+    log_to_owner(f"🛰️ <b>[SYSTEM ACCESS - /start]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>\n💬 Chat Type: <code>{chat_type}</code>")
 
     if not is_joined(user_id):
         markup = InlineKeyboardMarkup()
@@ -81,7 +89,7 @@ def start(message):
         "1️⃣ <b>Phone Data Search:</b>\n"
         "👉 <code>/num 9006640786</code>\n\n"
         "2️⃣ <b>Aadhaar Query Engine:</b>\n"
-        "👉 <code>/aadhar [ID_NUMBER]</code>\n\n"
+        "👉 <code>/aadhar [ID_QUERY]</code>\n\n"
         "3️⃣ <b>Network & Truecaller Analytics:</b>\n"
         "👉 <code>/true 9973700987</code>\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -89,8 +97,8 @@ def start(message):
         parse_mode="HTML"
     )
 
-# 1. /num Command (Phone Data Lookup)
-@bot.message_handler(func=lambda message: message.text.strip().startswith('/num'))
+# 1. /num Command
+@bot.message_handler(commands=['num'])
 def num_lookup(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
@@ -101,15 +109,12 @@ def num_lookup(message):
         bot.reply_to(message, "❌ <b>Security Rejection:</b> Node registration missing.", reply_markup=markup, parse_mode="HTML")
         return
 
-    parts = message.text.strip().split(maxsplit=1)
-    if len(parts) < 2:
+    target = extract_param(message.text, "/num").replace(" ", "")
+    if not target:
         bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/num 9006640786</code>", parse_mode="HTML")
         return
 
-    target = parts[1].strip().replace(" ", "")
-
-    # Log specific search command to owner
-    log_to_owner(f"🔍 <b>[NUM SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
+    log_to_owner(f"🔍 <b>[NUM SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>\n📍 Chat: <code>{message.chat.type}</code>")
 
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
@@ -166,8 +171,8 @@ def num_lookup(message):
     except Exception as e:
         bot.edit_message_text(f"⚠️ <b>Pipeline Fault:</b> <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
 
-# 2. /aadhar Command (Aadhaar Query Engine)
-@bot.message_handler(func=lambda message: message.text.strip().startswith('/aadhar'))
+# 2. /aadhar Command
+@bot.message_handler(commands=['aadhar'])
 def aadhar_lookup(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
@@ -178,15 +183,12 @@ def aadhar_lookup(message):
         bot.reply_to(message, "❌ <b>Security Rejection:</b> Node registration missing.", reply_markup=markup, parse_mode="HTML")
         return
 
-    parts = message.text.strip().split(maxsplit=1)
-    if len(parts) < 2:
+    target = extract_param(message.text, "/aadhar").replace(" ", "")
+    if not target:
         bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/aadhar [ID_QUERY]</code>", parse_mode="HTML")
         return
 
-    target = parts[1].strip().replace(" ", "")
-
-    # Log specific search command to owner (ID redacted for safety)
-    log_to_owner(f"🔍 <b>[AADHAAR SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>[Aadhaar Redacted]</code>")
+    log_to_owner(f"🔍 <b>[AADHAAR SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>[Aadhaar Redacted]</code>\n📍 Chat: <code>{message.chat.type}</code>")
 
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
@@ -241,8 +243,8 @@ def aadhar_lookup(message):
     except Exception as e:
         bot.edit_message_text(f"⚠️ <b>Pipeline Fault:</b> <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
 
-# 3. /true Command (Analytics & Truecaller Info)
-@bot.message_handler(func=lambda message: message.text.strip().startswith('/true'))
+# 3. /true Command
+@bot.message_handler(commands=['true'])
 def true_lookup(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
@@ -253,15 +255,12 @@ def true_lookup(message):
         bot.reply_to(message, "❌ <b>Security Rejection:</b> Node registration missing.", reply_markup=markup, parse_mode="HTML")
         return
 
-    parts = message.text.strip().split(maxsplit=1)
-    if len(parts) < 2:
+    target = extract_param(message.text, "/true").replace(" ", "")
+    if not target:
         bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/true 9973700987</code>", parse_mode="HTML")
         return
 
-    target = parts[1].strip().replace(" ", "")
-
-    # Log specific search command to owner
-    log_to_owner(f"🔍 <b>[TRUE SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
+    log_to_owner(f"🔍 <b>[TRUE SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>\n📍 Chat: <code>{message.chat.type}</code>")
 
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
@@ -303,17 +302,25 @@ def true_lookup(message):
     except Exception as e:
         bot.edit_message_text(f"⚠️ <b>Pipeline Fault:</b> <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
 
-# 4. GLOBAL MESSAGE TRACKER (Catch-All)
+# 4. Silent Message Tracker (Only logs to owner, never sends error messages in groups)
 @bot.message_handler(func=lambda message: True)
 def track_all_other_messages(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
     text = message.text or "[Non-Text / Media]"
-    
-    # Log any random message/text that is NOT a valid command
-    log_to_owner(f"📩 <b>[GENERAL MESSAGE TRACKED]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>\n💬 Message: <code>{html.escape(text)}</code>")
-    
-    bot.reply_to(message, "⚠️ <b>Invalid Command or Input.</b>\nPlease use /start to see available commands.", parse_mode="HTML")
+    chat_type = message.chat.type
+
+    # Owner ID par silent log bhejta rahega
+    log_to_owner(
+        f"📩 <b>[MESSAGE LOG - {chat_type.upper()}]:</b>\n"
+        f"👤 User: @{html.escape(username)}\n"
+        f"🆔 ID: <code>{user_id}</code>\n"
+        f"💬 Message: <code>{html.escape(text)}</code>"
+    )
+
+    # Private DM me invalid input alert dega, groups me bilkul shant rahega
+    if chat_type == 'private':
+        bot.reply_to(message, "⚠️ <b>Invalid Command.</b>\nPlease use /start to see available commands.", parse_mode="HTML")
 
 def run_bot():
     print("Intelligence Matrix Online...")
@@ -324,5 +331,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 10000))
-    )
-    
+        )
+        
