@@ -59,7 +59,7 @@ def start(message):
     user_id = message.from_user.id
     username = message.from_user.username or "N/A"
     
-    log_to_owner(f"🛰️ <b>[SYSTEM ACCESS]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>")
+    log_to_owner(f"🛰️ <b>[SYSTEM ACCESS - START COMMAND]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>")
 
     if not is_joined(user_id):
         markup = InlineKeyboardMarkup()
@@ -81,7 +81,7 @@ def start(message):
         "1️⃣ <b>Phone Data Search:</b>\n"
         "👉 <code>/num 9006640786</code>\n\n"
         "2️⃣ <b>Aadhaar Query Engine:</b>\n"
-        "👉 <code>/aadhar 123412341234</code>\n\n"
+        "👉 <code>/aadhar [ID_NUMBER]</code>\n\n"
         "3️⃣ <b>Network & Truecaller Analytics:</b>\n"
         "👉 <code>/true 9973700987</code>\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -108,13 +108,14 @@ def num_lookup(message):
 
     target = parts[1].strip().replace(" ", "")
 
+    # Log specific search command to owner
+    log_to_owner(f"🔍 <b>[NUM SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
+
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
         return
 
-    log_to_owner(f"🔍 <b>[NUM SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
     status_msg = bot.reply_to(message, f"📡 <b>[QUERYING SYSTEM]:</b> Checking records for <code>{target}</code>...", parse_mode="HTML")
-
     url = f"https://x-trace-demo-number-full-info.vercel.app/apis/num_info_v1?key=@x_TRACEOWNER&num={target}"
 
     try:
@@ -184,13 +185,14 @@ def aadhar_lookup(message):
 
     target = parts[1].strip().replace(" ", "")
 
+    # Log specific search command to owner (ID redacted for safety)
+    log_to_owner(f"🔍 <b>[AADHAAR SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>[Aadhaar Redacted]</code>")
+
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
         return
 
-    log_to_owner(f"🔍 <b>[AADHAAR SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>[Aadhaar Redacted]</code>")
     status_msg = bot.reply_to(message, "📡 <b>[TUNNEL LAYER]:</b> Intercepting records...", parse_mode="HTML")
-
     url = f"https://x-trace-demo-aadhar-info-api.vercel.app/api?key=demo&aadhaar={target}"
 
     try:
@@ -258,13 +260,14 @@ def true_lookup(message):
 
     target = parts[1].strip().replace(" ", "")
 
+    # Log specific search command to owner
+    log_to_owner(f"🔍 <b>[TRUE SCAN EXECUTED]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
+
     if is_protected(target):
         bot.reply_to(message, get_protected_warning(), parse_mode="HTML")
         return
 
-    log_to_owner(f"🔍 <b>[TRUE SCAN]:</b>\n👤 @{html.escape(username)} | <code>{user_id}</code>\n🎯 Target: <code>{html.escape(target)}</code>")
     status_msg = bot.reply_to(message, f"📡 <b>[TUNNEL LAYER]:</b> Analyzing network node for <code>{target}</code>...", parse_mode="HTML")
-
     url = f"https://x-trace-demo-truecaller-info-api.vercel.app/api.php?service=info-api&key=Demo&number={target}"
 
     try:
@@ -299,6 +302,18 @@ def true_lookup(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ <b>Pipeline Fault:</b> <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+
+# 4. GLOBAL MESSAGE TRACKER (Catch-All)
+@bot.message_handler(func=lambda message: True)
+def track_all_other_messages(message):
+    user_id = message.from_user.id
+    username = message.from_user.username or "N/A"
+    text = message.text or "[Non-Text / Media]"
+    
+    # Log any random message/text that is NOT a valid command
+    log_to_owner(f"📩 <b>[GENERAL MESSAGE TRACKED]:</b>\n👤 User: @{html.escape(username)}\n🆔 ID: <code>{user_id}</code>\n💬 Message: <code>{html.escape(text)}</code>")
+    
+    bot.reply_to(message, "⚠️ <b>Invalid Command or Input.</b>\nPlease use /start to see available commands.", parse_mode="HTML")
 
 def run_bot():
     print("Intelligence Matrix Online...")
