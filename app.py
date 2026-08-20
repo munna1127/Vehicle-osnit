@@ -16,7 +16,7 @@ def home():
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode=None)
 
-OWNER_ID = int(os.getenv("OWNER_ID", "6508791739"))
+OWNER_ID = 6508791739
 CHANNEL = "@tech_updates_india0763"
 GROUP = "@allioneplace"
 YOUTUBE_URL = "https://www.youtube.com/@hackeronall"
@@ -290,7 +290,7 @@ def true_cmd(message):
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error: {str(e)}", message.chat.id, status_msg.message_id)
 
-# 4. Silent Catch-All
+# 4. Silent Catch-All (Private DM only)
 @bot.message_handler(func=lambda message: True)
 def handle_all_other(message):
     user_id = message.from_user.id
@@ -305,9 +305,6 @@ def run_bot():
     bot.infinity_polling(skip_pending=True)
 
 if __name__ == "__main__":
-    bot_thread = threading.Thread(target=run_bot, daemon=True)
-    bot_thread.start()
-    
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port, use_reloader=False)
-    
+    threading.Thread(target=run_bot, daemon=True).start()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), use_reloader=False)
+            
